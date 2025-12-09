@@ -79,7 +79,8 @@
     <input id="display" class="display" type="text" value="0" readonly>
     <div class="keys">
         <button data-action="clear">C</button>
-        <button data-action="percent" class="operator">%</button>
+        <button data-action="backspace">⌫</button>
+        <button data-value="%" class="operator">%</button>
         <button data-action="divide" class="operator">÷</button>
 
         <button data-value="7">7</button>
@@ -110,23 +111,12 @@
         let current = '0';
         let operator = null;
         let operand = null;
-        let isError = false;
 
         const updateDisplay = () => {
             display.value = current;
         };
 
-        const resetIfError = () => {
-            if (isError) {
-                current = '0';
-                operator = null;
-                operand = null;
-                isError = false;
-            }
-        };
-
         const setInput = (value) => {
-            resetIfError();
             if (current === '0' && value !== '.') {
                 current = value;
             } else if (value === '.' && current.includes('.')) {
@@ -138,7 +128,6 @@
         };
 
         const setOperator = (op) => {
-            resetIfError();
             if (operator && operand !== null) {
                 compute();
             }
@@ -148,7 +137,6 @@
         };
 
         const compute = () => {
-            resetIfError();
             if (operator === null || operand === null) {
                 return;
             }
@@ -165,15 +153,7 @@
                     result *= right;
                     break;
                 case 'divide':
-                    if (right === 0) {
-                        current = 'Ошибка';
-                        operator = null;
-                        operand = null;
-                        isError = true;
-                        updateDisplay();
-                        return;
-                    }
-                    result = result / right;
+                    result = right === 0 ? 'Ошибка' : result / right;
                     break;
                 default:
                     break;
@@ -181,20 +161,6 @@
             current = String(result);
             operator = null;
             operand = null;
-            updateDisplay();
-        };
-
-        const applyPercent = () => {
-            resetIfError();
-            const value = parseFloat(current);
-            if (Number.isNaN(value)) {
-                return;
-            }
-            if (operand !== null && operator) {
-                current = String((operand * value) / 100);
-            } else {
-                current = String(value / 100);
-            }
             updateDisplay();
         };
 
@@ -218,15 +184,12 @@
 
             switch (action) {
                 case 'clear':
-                    resetIfError();
                     current = '0';
                     operator = null;
                     operand = null;
-                    isError = false;
                     updateDisplay();
                     break;
                 case 'backspace':
-                    resetIfError();
                     current = current.length > 1 ? current.slice(0, -1) : '0';
                     updateDisplay();
                     break;
@@ -235,9 +198,6 @@
                 case 'multiply':
                 case 'divide':
                     setOperator(action);
-                    break;
-                case 'percent':
-                    applyPercent();
                     break;
                 case 'equals':
                     compute();
